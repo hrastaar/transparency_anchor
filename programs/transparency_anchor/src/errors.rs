@@ -7,4 +7,16 @@ pub enum ErrorCode {
     
     #[msg("Invalid post rating")]
     InvalidPostRating,
+
+    #[msg("Invalid collection")]
+    InvalidCollection,
+
+    #[msg("Missing Collection")]
+    MissingCollection,
+
+    #[msg("Bad Pubkey")]
+    BadPubkey,
+
+    #[msg("Bad mint")]
+    IncorrectMint,
 } 
