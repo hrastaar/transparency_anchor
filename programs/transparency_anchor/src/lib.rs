@@ -3,7 +3,10 @@ pub mod errors;
 pub mod instructions;
 pub mod state;
 
-use {anchor_lang::prelude::*, errors::ErrorCode, instructions::create_post::*};
+use {
+    anchor_lang::prelude::*, errors::ErrorCode, instructions::create_post::*,
+    instructions::update_post::*,
+};
 
 declare_id!("DL1fGdczcn6St1kqgnaV5v5fwoicpTW3FLHhsAJbQPPM");
 
@@ -61,6 +64,23 @@ pub mod transparency_anchor {
         post.post_file_url = post_file_url;
         post.is_scam = is_scam;
         post.post_rating = post_rating;
+
+        Ok(())
+    }
+
+    pub fn update_post(
+        ctx: Context<UpdatePost>,
+        post_file_url: String,
+        is_scam: bool,
+        post_rating: u8,
+    ) -> Result<()> {
+        let post = &mut ctx.accounts.post;
+
+        post.post_file_url = post_file_url;
+        post.is_scam = is_scam;
+        post.post_rating = post_rating;
+
+        msg!("Successfully updated post with post file url");
 
         Ok(())
     }

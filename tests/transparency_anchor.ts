@@ -26,6 +26,7 @@ describe('transparency', () => {
   const secretKey = bs58.default.decode(secretKey58);
   const NFT_HOLDING_KEYPAIR = Keypair.fromSecretKey(secretKey);
 
+  const topicPubkeyAddress1 = Keypair.generate().publicKey;
   it('Creates post from account holding the required NFT', async () => {
     // Get the associated metadata account for the mint
     const mintPublicKey = new PublicKey(MINT_ADDRESS_STRING);
@@ -37,15 +38,14 @@ describe('transparency', () => {
       NFT_HOLDING_KEYPAIR.publicKey
     );
 
-    const topicPubkeyAddress = Keypair.generate().publicKey;
     const [postPda] = PublicKey.findProgramAddressSync(
-      [Buffer.from('post'), topicPubkeyAddress.toBuffer(), NFT_HOLDING_KEYPAIR.publicKey.toBuffer()],
+      [Buffer.from('post'), topicPubkeyAddress1.toBuffer(), NFT_HOLDING_KEYPAIR.publicKey.toBuffer()],
       program.programId
     );
 
     const postAccounts = {
       payer: NFT_HOLDING_KEYPAIR.publicKey,
-      topicAddress: topicPubkeyAddress,
+      topicAddress: topicPubkeyAddress1,
       tokenAccount: ata,
       metadata: metadataPda,
       post: postPda,
@@ -72,7 +72,7 @@ describe('transparency', () => {
 
     expect(postAccount.author.toString()).to.equal(provider.wallet.publicKey.toString());
     expect(postAccount.postFileUrl).to.equal(SHDW_POST_URL_STRING);
-    expect(postAccount.topicAddress.toString()).to.equal(topicPubkeyAddress.toString());
+    expect(postAccount.topicAddress.toString()).to.equal(topicPubkeyAddress1.toString());
     expect(postAccount.isScam).to.equal(IS_SCAM);
     expect(postAccount.postRating).to.equal(POST_RATING);
   });
@@ -131,5 +131,59 @@ describe('transparency', () => {
       expect(error.error.errorCode.code).to.equal('ConstraintRaw');
       expect(error.error.errorCode.number).to.equal(2003);
     }
+  });
+
+  it('Updates post from author account', async () => {
+    const [postPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from('post'), topicPubkeyAddress1.toBuffer(), NFT_HOLDING_KEYPAIR.publicKey.toBuffer()],
+      program.programId
+    );
+
+    // Previous post account checks.
+    const postAccount = await program.account.post.fetch(postPda);
+
+    console.log("Post account data before update:", postAccount);
+    const SHDW_POST_URL_STRING = "https://shadow-storage.genesysgo.net/hello_world";
+    const IS_SCAM = false;
+    const POST_RATING = 5;
+
+    expect(postAccount.author.toString()).to.equal(provider.wallet.publicKey.toString());
+    expect(postAccount.postFileUrl).to.equal(SHDW_POST_URL_STRING);
+    expect(postAccount.topicAddress.toString()).to.equal(topicPubkeyAddress1.toString());
+    expect(postAccount.isScam).to.equal(IS_SCAM);
+    expect(postAccount.postRating).to.equal(POST_RATING);
+
+    const postAccounts = {
+      payer: NFT_HOLDING_KEYPAIR.publicKey,
+      topicAddress: topicPubkeyAddress1,
+      post: postPda,
+      systemProgram: SystemProgram.programId,
+    } as const;
+  
+    const UPDATED_SHDW_POST_URL_STRING = "https://shadow-storage.genesysgo.net/updated_shdw_post.json";
+    const UPDATED_IS_SCAM = true;
+    const UPDATED_POST_RATING = 1;
+  
+    try {
+      await program.methods
+        .updatePost(UPDATED_SHDW_POST_URL_STRING, UPDATED_IS_SCAM, UPDATED_POST_RATING)
+        .preInstructions([modifyComputeUnits])
+        .accounts(postAccounts)
+        .signers([NFT_HOLDING_KEYPAIR])
+        .rpc();
+    } catch (error) {
+      console.error(error)
+      throw error;
+    }
+
+    const updatedPostAccount = await program.account.post.fetch(postPda);
+
+    console.log("Post account data after update:", updatedPostAccount);
+
+    expect(updatedPostAccount.author.toString()).to.equal(provider.wallet.publicKey.toString());
+    expect(updatedPostAccount.postFileUrl).to.equal(UPDATED_SHDW_POST_URL_STRING);
+    expect(updatedPostAccount.topicAddress.toString()).to.equal(topicPubkeyAddress1.toString());
+    expect(updatedPostAccount.isScam).to.equal(UPDATED_IS_SCAM);
+    expect(updatedPostAccount.postRating).to.equal(UPDATED_POST_RATING);
   });
 });
