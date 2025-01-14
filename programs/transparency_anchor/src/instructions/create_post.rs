@@ -20,7 +20,7 @@ pub struct CreatePost<'info> {
     /// CHECK: This is not written to, just used as a reference for PDA creation
     pub topic_address: AccountInfo<'info>,
     #[account(
-        init, 
+        init,
         seeds = [b"post", topic_address.key().as_ref(), payer.key().as_ref()],
         bump,
         payer = payer,
@@ -28,4 +28,4 @@ pub struct CreatePost<'info> {
     )]
     pub post: Account<'info, Post>,
     pub system_program: Program<'info, System>,
-} 
+}

@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 pub enum ErrorCode {
     #[msg("Post already exists")]
     PostAlreadyExists,
-    
+
     #[msg("Invalid post rating")]
     InvalidPostRating,
 
@@ -19,4 +19,4 @@ pub enum ErrorCode {
 
     #[msg("Bad mint")]
     IncorrectMint,
-} 
+}
