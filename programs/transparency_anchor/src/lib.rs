@@ -13,11 +13,10 @@ declare_id!("DL1fGdczcn6St1kqgnaV5v5fwoicpTW3FLHhsAJbQPPM");
 #[program]
 pub mod transparency_anchor {
 
+    use constants::COLLECTION_MINT_ADDRESS;
     use mpl_token_metadata::accounts::Metadata;
 
     use super::*;
-
-    const COLLECTION_MINT_ADDRESS: &str = "DWmiAaepNXAV7iZYNwAp7huwNbyYukctTmPHxE4ungR1";
 
     pub fn create_post(
         ctx: Context<CreatePost>,
