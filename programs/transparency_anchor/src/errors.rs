@@ -19,4 +19,13 @@ pub enum ErrorCode {
 
     #[msg("Bad mint")]
     IncorrectMint,
+
+    #[msg("Invalid token amount")]
+    InvalidTokenAmount,
+
+    #[msg("Invalid token owner")]
+    InvalidTokenOwner,
+
+    #[msg("Invalid post author")]
+    InvalidPostAuthor,
 }

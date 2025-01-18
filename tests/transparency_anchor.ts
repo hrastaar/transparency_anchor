@@ -128,8 +128,7 @@ describe('transparency', () => {
         expect.fail("Transaction should have failed due to missing nft");
     } catch (error) {
       // Expect a constraint error because the signer does not own the token account provided.
-      expect(error.error.errorCode.code).to.equal('ConstraintRaw');
-      expect(error.error.errorCode.number).to.equal(2003);
+      expect(error.error.errorCode.code).to.equal('InvalidTokenOwner');
     }
   });
 
@@ -142,7 +141,6 @@ describe('transparency', () => {
     // Previous post account checks.
     const postAccount = await program.account.post.fetch(postPda);
 
-    console.log("Post account data before update:", postAccount);
     const SHDW_POST_URL_STRING = "https://shadow-storage.genesysgo.net/hello_world";
     const IS_SCAM = false;
     const POST_RATING = 5;
@@ -177,8 +175,6 @@ describe('transparency', () => {
     }
 
     const updatedPostAccount = await program.account.post.fetch(postPda);
-
-    console.log("Post account data after update:", updatedPostAccount);
 
     expect(updatedPostAccount.author.toString()).to.equal(provider.wallet.publicKey.toString());
     expect(updatedPostAccount.postFileUrl).to.equal(UPDATED_SHDW_POST_URL_STRING);

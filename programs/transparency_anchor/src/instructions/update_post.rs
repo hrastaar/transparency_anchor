@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::state::*;
+use crate::errors::ErrorCode;
 
 #[derive(Accounts)]
 pub struct UpdatePost<'info> {
@@ -14,7 +15,7 @@ pub struct UpdatePost<'info> {
         mut,
         seeds = [b"post", topic_address.key().as_ref(), payer.key().as_ref()],
         bump,
-        constraint = post.author == payer.key()
+        constraint = post.author == payer.key() @ ErrorCode::InvalidPostAuthor
     )]
     pub post: Account<'info, Post>,
 
