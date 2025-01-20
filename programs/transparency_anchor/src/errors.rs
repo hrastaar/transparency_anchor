@@ -28,4 +28,7 @@ pub enum ErrorCode {
 
     #[msg("Invalid post author")]
     InvalidPostAuthor,
+
+    #[msg("Metadata account must be owned by metaplex")]
+    NonMetaplexMetadataAccount
 }

@@ -16,7 +16,6 @@ pub struct CreatePost<'info> {
     pub token_account: Account<'info, TokenAccount>,
 
     /// CHECK: Metadata account is manually verified
-    #[account(constraint = *metadata.owner == mpl_token_metadata::ID)]
     pub metadata: AccountInfo<'info>,
 
     /// CHECK: This is not written to, just used as a reference for PDA creation
