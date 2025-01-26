@@ -4,11 +4,14 @@
 resolution = true
 skip-lint = false
 
+[programs.localnet]
+transparency_anchor = "2ziQobdPPPsgdc7e7Py1mZNs3UrhwiReUJH59ehW67Fd"
+
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+cluster = "Devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

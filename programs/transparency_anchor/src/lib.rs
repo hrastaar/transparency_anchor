@@ -8,7 +8,7 @@ use {
     instructions::update_post::*,
 };
 
-declare_id!("DJJKXB7bwaU1Hte8EnczbFUWsnRSyff76krhZqbwYK8Y");
+declare_id!("2ziQobdPPPsgdc7e7Py1mZNs3UrhwiReUJH59ehW67Fd");
 
 #[program]
 pub mod transparency_anchor {
