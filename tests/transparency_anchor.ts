@@ -13,6 +13,7 @@ const provider = anchor.AnchorProvider.env()
 anchor.setProvider(provider)
 
 const program = anchor.workspace.TransparencyAnchor as Program<TransparencyAnchor>;
+const SHDW_POST_URL_STRING = "https://shadow-storage.genesysgo.net/hello_world";
 
 describe('transparency', () => {
 
@@ -95,7 +96,6 @@ describe('transparency', () => {
         systemProgram: SystemProgram.programId,
       } as const;
     
-      const SHDW_POST_URL_STRING = "https://shadow-storage.genesysgo.net/hello_world";
       const IS_SCAM = false;
       const POST_RATING = 5;
     
@@ -217,5 +217,42 @@ describe('transparency', () => {
       expect(updatedPostAccount.postRating).to.equal(UPDATED_POST_RATING);
     });
   })
-});
 
+  describe('Testing deletePost transactions', async () => {
+    it('Deletes post', async () => {
+      const [postPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('post'), POST_TOPIC_PUBLIC_KEY.toBuffer(), NFT_HOLDING_KEYPAIR.publicKey.toBuffer()],
+        program.programId
+      );
+
+      const postAccountBeforeDeletion = await program.account.post.fetch(postPda);
+      expect(postAccountBeforeDeletion.author.toBase58()).to.equal(NFT_HOLDING_KEYPAIR.publicKey.toBase58());
+      expect(postAccountBeforeDeletion.topicAddress.toBase58()).to.equal(POST_TOPIC_PUBLIC_KEY.toBase58())
+
+      const deletePostAccounts = {
+        payer: NFT_HOLDING_KEYPAIR.publicKey,
+        topicAddress: POST_TOPIC_PUBLIC_KEY,
+        post: postPda,
+        systemProgram: SystemProgram.programId,
+      } as const;
+
+      try {
+        await program.methods
+          .deletePost()
+          .accounts(deletePostAccounts)
+          .signers([NFT_HOLDING_KEYPAIR])
+          .rpc();
+      } catch (error) {
+        console.error(error)
+        throw error;
+      }
+
+      try {
+        await program.account.post.fetch(postPda);
+        expect.fail("Transaction should have failed due to missing nft");
+      } catch (error) {
+        expect(error.message).to.include('Account does not exist');
+      }
+    });
+  })
+});

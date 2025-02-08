@@ -2,19 +2,21 @@ pub mod constants;
 pub mod errors;
 pub mod instructions;
 pub mod state;
+pub mod nft;
 
 use {
-    anchor_lang::prelude::*, errors::ErrorCode, instructions::create_post::*,
+    anchor_lang::prelude::*, 
+    errors::ErrorCode, 
+    instructions::create_post::*,
     instructions::update_post::*,
+    instructions::delete_post::*,
+    nft::nft_validation::nft_validation::is_signer_nft_member
 };
 
-declare_id!("2ziQobdPPPsgdc7e7Py1mZNs3UrhwiReUJH59ehW67Fd");
+declare_id!("A1JwCbCR9s3RCruL23hUFNnRknV1dgFoEJzUVYL6jwN6");
 
 #[program]
 pub mod transparency_anchor {
-
-    use constants::COLLECTION_MINT_ADDRESS;
-    use mpl_token_metadata::accounts::Metadata;
 
     use super::*;
 
@@ -24,29 +26,14 @@ pub mod transparency_anchor {
         is_scam: bool,
         post_rating: u8,
     ) -> Result<()> {
-        let metadata_account: &mut AccountInfo<'_> = &mut ctx.accounts.metadata;
-        let metadata: Metadata = Metadata::try_from(&metadata_account.to_account_info())?;
+        let metadata_account= &ctx.accounts.metadata;
+        let nft_token_account = &ctx.accounts.token_account;
+        
+        let nft_validation_result = is_signer_nft_member(metadata_account, nft_token_account);
 
-        let token_account: &mut Account<'_, anchor_spl::token::TokenAccount> = &mut ctx.accounts.token_account;
-
-        if metadata.mint != token_account.mint {
-            msg!("Metadata account mint does not match token account mint");
-            return Err(error!(ErrorCode::IncorrectMint));
+        if let Err(error) = nft_validation_result {
+            return Err(error);
         }
-
-        let collection_mint_pubkey: Pubkey = match Pubkey::try_from(COLLECTION_MINT_ADDRESS) {
-            Ok(pubkey) => pubkey,
-            Err(err) => {
-                eprintln!("Unable to convert collection mint to pubkey: {}", err);
-                return Err(error!(ErrorCode::BadPubkey));
-            }
-        };
-
-        if token_account.mint != collection_mint_pubkey {
-            return Err(error!(ErrorCode::InvalidCollection));
-        }
-
-        msg!("Signer is a valid NFT member");
 
         if !(1..=5).contains(&post_rating) {
             msg!("Invalid post rating");
@@ -71,28 +58,13 @@ pub mod transparency_anchor {
         post_rating: u8,
     ) -> Result<()> {
         let metadata_account: &mut AccountInfo<'_> = &mut ctx.accounts.metadata;
-        let metadata: Metadata = Metadata::try_from(&metadata_account.to_account_info())?;
+        let nft_token_account: &mut Account<'_, anchor_spl::token::TokenAccount> = &mut ctx.accounts.token_account;
+        
+        let nft_validation_result = is_signer_nft_member(metadata_account, nft_token_account);
 
-        let token_account: &mut Account<'_, anchor_spl::token::TokenAccount> = &mut ctx.accounts.token_account;
-
-        if metadata.mint != token_account.mint {
-            msg!("Metadata account mint does not match token account mint");
-            return Err(error!(ErrorCode::IncorrectMint));
+        if let Err(error) = nft_validation_result {
+            return Err(error);
         }
-
-        let collection_mint_pubkey: Pubkey = match Pubkey::try_from(COLLECTION_MINT_ADDRESS) {
-            Ok(pubkey) => pubkey,
-            Err(err) => {
-                eprintln!("Unable to convert collection mint to pubkey: {}", err);
-                return Err(error!(ErrorCode::BadPubkey));
-            }
-        };
-
-        if token_account.mint != collection_mint_pubkey {
-            return Err(error!(ErrorCode::InvalidCollection));
-        }
-
-        msg!("Signer is a valid NFT member");
         
         let post = &mut ctx.accounts.post;
 
@@ -102,6 +74,11 @@ pub mod transparency_anchor {
 
         msg!("Successfully updated post with post file url");
 
+        Ok(())
+    }
+
+    pub fn delete_post(_ctx: Context<DeletePost>) -> Result<()> {
+        msg!("Successfully deleted post");
         Ok(())
     }
 }
